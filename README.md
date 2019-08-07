@@ -1,10 +1,10 @@
 ## Information and materials for DLinNLP 2019 Summer School 
 
-This repository contains the materials and some information for DLinNLP 2019 Summer School.
-The summer school will be held as part of RANLP conference on 29 and 30 August 2019 in Varna, Bulgaria.
+This repository contains the materials and some information regarding the Deep Learning in NLP Summer School (DLinNLP 2019).
+The summer school will be held as part of the Recent Advances in Natural Language Processing (RANLP) conference on 29 and 30 August 2019 in Varna, Bulgaria.
 
-It features four main keynote speeches plus three practical sessions. the programme for the summer school can be found in [https://dlinnlp.github.io/programme.html](https://dlinnlp.github.io/programme.html).
+It features four main keynote speeches plus three practical sessions. The programme for the summer school can be found in [https://dlinnlp.github.io/programme.html](https://dlinnlp.github.io/programme.html).
 
-For the practical sessions, participants are expected to use their own laptops, contect to [Google Colaboratory](https://colab.research.google.com/) (see more info [here](https://research.google.com/colaboratory/faq.html)) using their Gmail accounts and work on the PyTorch codes taught by the tutors. Some frequently asked questions are added as [FAQs](https://github.com/omidrohanian/notebooks-DLinNLP/blob/master/FAQ.ipynb) for DLinNLP.
+For the practical sessions, participants are expected to bring their own laptops, connect to [Google Colaboratory](https://colab.research.google.com/) (see more info [here](https://research.google.com/colaboratory/faq.html)) using their Gmail accounts and work on the code and instructions provided by the presenters. Please have a look at the Frequently asked questions (FAQ) [here](https://github.com/omidrohanian/notebooks-DLinNLP/blob/master/FAQ.ipynb).
 
-Instructions on using Google Colab Jupyter notebook environment is available [here](https://github.com/omidrohanian/notebooks-DLinNLP/blob/master/googledrive.ipynb). 
+For instructions on how to use Google Colab along with Google Drive have a look at [this page](https://github.com/omidrohanian/notebooks-DLinNLP/blob/master/googledrive.ipynb). 
