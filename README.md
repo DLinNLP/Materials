@@ -1,4 +1,4 @@
-# Materials
+# Information and materials about DLinNLP 2019 Summer School 
 
 This repository contains the materials and some information about DLinNLP 2019 Summer School.
 The summer school will be held as part of RANLP conference on 29 and 30 August 2019 in Varna, Bulgaria.
