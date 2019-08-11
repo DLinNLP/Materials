@@ -7,6 +7,8 @@ It features four main keynote speeches plus three practical sessions. The progra
 
 #### Practical Sessions
 
-For the practical sessions, participants are expected to bring their own laptops, connect to [Google Colaboratory](https://colab.research.google.com/) (see more info [here](https://research.google.com/colaboratory/faq.html)) using their Gmail accounts and work on the code and instructions provided by the presenters. Please have a look at the [Frequently asked questions (FAQ)](https://github.com/omidrohanian/notebooks-DLinNLP/blob/master/FAQ.ipynb).
+For the practical sessions, participants are expected to bring their own laptops, connect to [Google Colaboratory](https://colab.research.google.com/) using their Gmail accounts and work on the code and instructions provided by the presenters. For more information about Google Colaboratory tool, see [this link](https://research.google.com/colaboratory/faq.html).
+
+Please have a look at the [Frequently asked questions (FAQ)](https://github.com/omidrohanian/notebooks-DLinNLP/blob/master/FAQ.ipynb) for the summer school.
 
 For instructions on how to use Google Colab along with Google Drive have a look at [this page](https://github.com/omidrohanian/notebooks-DLinNLP/blob/master/googledrive.ipynb). 
