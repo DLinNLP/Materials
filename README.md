@@ -12,3 +12,5 @@ For the practical sessions, participants are expected to bring their own laptops
 Please have a look at the [Frequently asked questions (FAQ)](https://github.com/omidrohanian/notebooks-DLinNLP/blob/master/FAQ.ipynb) for the summer school.
 
 For instructions on how to use Google Colab along with Google Drive have a look at [this page](https://github.com/omidrohanian/notebooks-DLinNLP/blob/master/googledrive.ipynb). 
+
+Last but not least, in order to prepare for the sessions, you might want to have a look at the [preparatory material](https://github.com/DLinNLP/Materials/blob/master/Preparatory.md).
