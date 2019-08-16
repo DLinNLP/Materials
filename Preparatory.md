@@ -8,6 +8,15 @@ The lectures are going to be self-contained. If you like to be more prepared, we
 * https://www.deeplearningbook.org/contents/linear_algebra.html
 * https://pytorch.org/tutorials/beginner/blitz/autograd_tutorial.html#sphx-glr-beginner-blitz-autograd-tutorial-py
 
-As for practical sessions, we require participant to have some knowledge of Python and programming in general. In order to master PyTorch, it would be useful for the participants to have knowledge of the Python library, Numpy. One way to get started would be to read through the document in the below link:
+As for the practical sessions, we require participants to have some knowledge of Python and programming in general. We also assume familiarity with the Python library, Numpy. One way to get started would be to read through the document in the below link:
 
 * https://docs.scipy.org/doc/numpy/user/quickstart.html
+
+For the practical session on sense embeddings you can have a look at this paper for a background:
+* https://www.aclweb.org/anthology/N15-1165
+
+To have a general idea of what to expect in the sequence tagging session, you can read this page on sequence models:
+
+* https://pytorch.org/tutorials/beginner/nlp/sequence_models_tutorial.html
+
+
