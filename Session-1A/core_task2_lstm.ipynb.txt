@@ -1,0 +1,331 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "name": "core_task2_lstm.ipynb",
+      "version": "0.3.2",
+      "provenance": [],
+      "collapsed_sections": []
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "accelerator": "GPU"
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "7GgvhvpQXoUa",
+        "colab_type": "text"
+      },
+      "source": [
+        "Prerequisities: Access data in google drive"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "svqC3FilHivy",
+        "colab_type": "code",
+        "outputId": "f95a0d42-61a7-4724-b835-5c3a208f0abd",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 131
+        }
+      },
+      "source": [
+        "from google.colab import drive\n",
+        "drive.mount('/content/drive/')"
+      ],
+      "execution_count": 0,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "Go to this URL in a browser: https://accounts.google.com/o/oauth2/auth?client_id=947318989803-6bn6qk8qdgf4n4g3pfee6491hc0brc4i.apps.googleusercontent.com&redirect_uri=urn%3Aietf%3Awg%3Aoauth%3A2.0%3Aoob&scope=email%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fdocs.test%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fdrive%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fdrive.photos.readonly%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fpeopleapi.readonly&response_type=code\n",
+            "\n",
+            "Enter your authorization code:\n",
+            "··········\n",
+            "Mounted at /content/drive/\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "Ejtp4twtYOEI",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "import torch\n",
+        "from torch import nn, optim\n",
+        "import numpy\n",
+        "import torch.utils.data as tud"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "KLrDsjpeXyBb",
+        "colab_type": "text"
+      },
+      "source": [
+        "Helper functions"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "x5LpY3HSowgt",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "def sort_by_length(x, l, y):\n",
+        "        l_sorted, permutation = l.sort(0, descending=True)\n",
+        "        x_sorted = x[permutation]\n",
+        "        y_sorted = y[permutation]\n",
+        "        return x_sorted, l_sorted, y_sorted\n",
+        "\n",
+        "def get_accuracy(hypos, refs):\n",
+        "        assert(len(hypos) == len(refs))\n",
+        "        correct = 0\n",
+        "        print(\"hypos\", numpy.bincount(numpy.array(hypos)))\n",
+        "        for h, r in zip(hypos, refs):\n",
+        "                if h == r:\n",
+        "                        correct += 1\n",
+        "        total = len(refs)\n",
+        "        return correct * 100 / total\n",
+        "\n",
+        "def evaluate_model(data_loader, model, set_name, sort=False):\n",
+        "        results_dev = []\n",
+        "        labels_dev = []\n",
+        "        for data in data_loader:\n",
+        "                if sort:  # needed for LSTM with pack_padded_sequences\n",
+        "                        x, l, y = sort_by_length(data['x'], data['length'], \n",
+        "                                                 data['y'])\n",
+        "                else:\n",
+        "                        x, l, y = data['x'], data['length'], data['y']\n",
+        "                result = model(x, l)\n",
+        "                argmax = result.argmax(dim=1).cpu().numpy()\n",
+        "                results_dev.extend(list(argmax))\n",
+        "                labels_dev.extend(list(y.cpu().numpy()))\n",
+        "        accuracy = get_accuracy(results_dev, labels_dev)\n",
+        "        print(\"accuracy on \" + set_name + \":\", accuracy)"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "0JZJqxluYEnr",
+        "colab_type": "text"
+      },
+      "source": [
+        "Dataset class for hate speech dataset"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "QR85eZN8YI7O",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "class HateSpeechDataset(tud.Dataset):\n",
+        "        def __init__(self, filename_data, filename_length, filename_labels):\n",
+        "                self.data_np = numpy.load(filename_data)\n",
+        "                self.length_np = numpy.load(filename_length)\n",
+        "                self.labels_np = numpy.load(filename_labels)\n",
+        "                self.data = torch.tensor(self.data_np).long().cuda()\n",
+        "                self.length = torch.tensor(self.length_np).long().cuda()\n",
+        "                self.labels = torch.tensor(self.labels_np).long().cuda()\n",
+        "\n",
+        "        def __len__(self):\n",
+        "                return len(self.data_np)\n",
+        "\n",
+        "        def __getitem__(self, idx):\n",
+        "                return {'x': self.data[idx], \n",
+        "                        'length': self.length[idx], \n",
+        "                        'y': self.labels[idx]}"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "T-buR7kyYTv2",
+        "colab_type": "text"
+      },
+      "source": [
+        "Model: hate speech detector"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "q-4Ugk8yYW1G",
+        "colab_type": "code",
+        "colab": {}
+      },
+      "source": [
+        "class HateSpeechDetector(nn.Module):\n",
+        "\n",
+        "  def __init__(self, options):\n",
+        "    super(HateSpeechDetector, self).__init__()\n",
+        "    # TODO: add your layers here\n",
+        "\n",
+        "  def forward(self, x, length):\n",
+        "    # TODO: add the calculations you need to get the softmax scores here\n",
+        "    return scores"
+      ],
+      "execution_count": 0,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "Z0jbuyYiYmvO",
+        "colab_type": "text"
+      },
+      "source": [
+        "Training the model"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "l7At7I7tYo6A",
+        "colab_type": "code",
+        "outputId": "cfd39225-520c-40ae-8852-c3ade8e3e2d9",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 1000
+        }
+      },
+      "source": [
+        "# loading data\n",
+        "path = \"/content/drive/My Drive/summerschool_data/\"\n",
+        "train_set = HateSpeechDataset(path + \"train.data2.npy\", \n",
+        "                              path + \"train.length.npy\", \n",
+        "                              path + \"train.labels.npy\")\n",
+        "dev_set = HateSpeechDataset(path + \"dev.data2.npy\", \n",
+        "                            path + \"dev.length.npy\", \n",
+        "                            path + \"dev.labels.npy\")\n",
+        "test_set = HateSpeechDataset(path + \"test.data2.npy\", \n",
+        "                             path + \"test.length.npy\", \n",
+        "                             path + \"test.labels.npy\")\n",
+        "\n",
+        "# setting hyperparameters\n",
+        "options = {\n",
+        "                'vocab_size': 23078,\n",
+        "                'emb_dim': 300,\n",
+        "                'num_labels': 3,\n",
+        "                'num_epochs': 20,\n",
+        "                'batch_size': 100\n",
+        "                # todo: add LSTM specific hyperparameters\n",
+        "          }\n",
+        "\n",
+        "# TODO: initialize model and define loss function and optimizer\n",
+        "model = \n",
+        "model.cuda()  # do this before instantiating the optimizer\n",
+        "loss_function = \n",
+        "optimizer = \n",
+        "\n",
+        "# training loop\n",
+        "train_loader = tud.DataLoader(train_set, batch_size=options['batch_size'], \n",
+        "                              shuffle=True)\n",
+        "dev_loader = tud.DataLoader(dev_set, batch_size=options['batch_size'])\n",
+        "test_loader = tud.DataLoader(test_set, batch_size=options['batch_size'])\n",
+        "\n",
+        "for epoch in range(options['num_epochs']):\n",
+        "        print(\"training epoch\", epoch + 1)\n",
+        "        # train model on training data\n",
+        "        for data in train_loader:\n",
+        "                # TODO: do a training step here\n",
+        "            \n",
+        "        # TODO: evaluate your model on dev here\n",
+        "\n",
+        "# TODO: evaluate your model on test here\n"
+      ],
+      "execution_count": 0,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "embedding.weight\n",
+            "lstm.weight_ih_l0\n",
+            "lstm.weight_hh_l0\n",
+            "lstm.bias_ih_l0\n",
+            "lstm.bias_hh_l0\n",
+            "lstm.weight_ih_l0_reverse\n",
+            "lstm.weight_hh_l0_reverse\n",
+            "lstm.bias_ih_l0_reverse\n",
+            "lstm.bias_hh_l0_reverse\n",
+            "lstm.weight_ih_l1\n",
+            "lstm.weight_hh_l1\n",
+            "lstm.bias_ih_l1\n",
+            "lstm.bias_hh_l1\n",
+            "lstm.weight_ih_l1_reverse\n",
+            "lstm.weight_hh_l1_reverse\n",
+            "lstm.bias_ih_l1_reverse\n",
+            "lstm.bias_hh_l1_reverse\n",
+            "linear.weight\n",
+            "linear.bias\n",
+            "training epoch 1\n",
+            "hypos [  226 16145  4412]\n",
+            "accuracy on train: 89.82822499157966\n",
+            "hypos [  24 1550  426]\n",
+            "accuracy on dev: 87.65\n",
+            "training epoch 2\n",
+            "hypos [  281 16417  4085]\n",
+            "accuracy on train: 91.98383294038396\n",
+            "hypos [  35 1558  407]\n",
+            "accuracy on dev: 89.25\n",
+            "training epoch 3\n",
+            "hypos [  670 16517  3596]\n",
+            "accuracy on train: 94.89967762113265\n",
+            "hypos [  62 1590  348]\n",
+            "accuracy on dev: 89.0\n",
+            "training epoch 4\n",
+            "hypos [  879 16438  3466]\n",
+            "accuracy on train: 96.95905307222249\n",
+            "hypos [  61 1599  340]\n",
+            "accuracy on dev: 88.6\n",
+            "training epoch 5\n",
+            "hypos [ 1194 16024  3565]\n",
+            "accuracy on train: 98.00798729731031\n",
+            "hypos [ 125 1507  368]\n",
+            "accuracy on dev: 87.65\n",
+            "training epoch 6\n"
+          ],
+          "name": "stdout"
+        },
+        {
+          "output_type": "error",
+          "ename": "KeyboardInterrupt",
+          "evalue": "ignored",
+          "traceback": [
+            "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
+            "\u001b[0;31mKeyboardInterrupt\u001b[0m                         Traceback (most recent call last)",
+            "\u001b[0;32m<ipython-input-19-f0d60c8f3f58>\u001b[0m in \u001b[0;36m<module>\u001b[0;34m()\u001b[0m\n\u001b[1;32m     47\u001b[0m                 \u001b[0mlabels\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0my\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     48\u001b[0m                 \u001b[0mloss\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mloss_function\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mscores\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mlabels\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m---> 49\u001b[0;31m                 \u001b[0mloss\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mbackward\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m     50\u001b[0m                 \u001b[0moptimizer\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mstep\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     51\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/usr/local/lib/python3.6/dist-packages/torch/tensor.py\u001b[0m in \u001b[0;36mbackward\u001b[0;34m(self, gradient, retain_graph, create_graph)\u001b[0m\n\u001b[1;32m    105\u001b[0m                 \u001b[0mproducts\u001b[0m\u001b[0;34m.\u001b[0m \u001b[0mDefaults\u001b[0m \u001b[0mto\u001b[0m\u001b[0;31m \u001b[0m\u001b[0;31m`\u001b[0m\u001b[0;31m`\u001b[0m\u001b[0;32mFalse\u001b[0m\u001b[0;31m`\u001b[0m\u001b[0;31m`\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    106\u001b[0m         \"\"\"\n\u001b[0;32m--> 107\u001b[0;31m         \u001b[0mtorch\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mautograd\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mbackward\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mself\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mgradient\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mretain_graph\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mcreate_graph\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m    108\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    109\u001b[0m     \u001b[0;32mdef\u001b[0m \u001b[0mregister_hook\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mself\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mhook\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/usr/local/lib/python3.6/dist-packages/torch/autograd/__init__.py\u001b[0m in \u001b[0;36mbackward\u001b[0;34m(tensors, grad_tensors, retain_graph, create_graph, grad_variables)\u001b[0m\n\u001b[1;32m     91\u001b[0m     Variable._execution_engine.run_backward(\n\u001b[1;32m     92\u001b[0m         \u001b[0mtensors\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mgrad_tensors\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mretain_graph\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mcreate_graph\u001b[0m\u001b[0;34m,\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m---> 93\u001b[0;31m         allow_unreachable=True)  # allow_unreachable flag\n\u001b[0m\u001b[1;32m     94\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     95\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;31mKeyboardInterrupt\u001b[0m: "
+          ]
+        }
+      ]
+    }
+  ]
+}
