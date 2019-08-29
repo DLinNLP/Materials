@@ -1,4 +1,4 @@
-The code and material for the practical Session 1A in DLinNLP can be found here.
+The code and material for the practical Session 1A (by Heike Adel) in DLinNLP can be found here.
 
 In order to access the data and use the code, please follow the steps below:
 
