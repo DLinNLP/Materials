@@ -1,1 +1,1 @@
-This folder includes the data from CONLL2003.
+CONLL2003 train.txt, dev.txt, test.txt
