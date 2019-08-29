@@ -1,4 +1,4 @@
-### The code and material for the practical Session 1A (by Heike Adel) in DLinNLP
+# The code and material for the practical Session 1A (by Heike Adel) in DLinNLP
 
 ### In order to access the data and use the code, please follow the steps below:
 
