@@ -3,9 +3,12 @@
 This repository contains the materials and some information regarding the Deep Learning in NLP Summer School (DLinNLP 2019).
 The summer school will be held as part of the [Recent Advances in Natural Language Processing (RANLP 2019)](http://lml.bas.bg/ranlp2019/start.php) conference on 29 and 30 August 2019 in Varna, Bulgaria.
 
-It features four main keynote speeches plus three practical sessions. The programme for the summer school can be found [here](https://dlinnlp.github.io/programme.html).
+The summer school four main keynote speeches plus three practical sessions. The programme for the summer school can be found [here](https://dlinnlp.github.io/programme.html). The links to the slides are being added to the programme after each talk.
+
 
 #### Practical Sessions
+
+You can find the link to code and data for practical sessions in their correponding folders, Session-1A, Session-2A and Session-2B.
 
 For the practical sessions, participants are expected to bring their own laptops, connect to [Google Colaboratory](https://colab.research.google.com/) using their Gmail accounts and work on the code and instructions provided by the presenters. For more information about Google Colaboratory tool, see [this link](https://research.google.com/colaboratory/faq.html).
 
