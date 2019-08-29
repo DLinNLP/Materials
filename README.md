@@ -8,7 +8,7 @@ The summer school four main keynote speeches plus three practical sessions. The 
 
 ### Practical Sessions
 
-# You can find the link to code and data for practical sessions in their correponding folders, Session-1A, Session-2A and Session-2B.
+#### You can find the link to code and data for practical sessions in their correponding folders, Session-1A, Session-2A and Session-2B.
 
 For the practical sessions, participants are expected to bring their own laptops, connect to [Google Colaboratory](https://colab.research.google.com/) using their Gmail accounts and work on the code and instructions provided by the presenters. For more information about Google Colaboratory tool, see [this link](https://research.google.com/colaboratory/faq.html).
 
